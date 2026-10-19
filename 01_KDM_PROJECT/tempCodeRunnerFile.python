@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants & Properties
+rho = 2700       # Density (kg/m^3)
+cp = 900         # Specific heat (J/kg.K)
+k = 237          # Thermal conductivity (W/m.K)
+m = 6            # Mass (kg)
+T_i = 300        # Initial temp (C)
+T_inf = 20       # Fluid temp (C)
+T_f = 90         # Target temp (C)
+
+# Geometric properties
+V = m / rho
+r_out = (3 * V / (4 * np.pi))**(1/3)
+A_s = 4 * np.pi * r_out**2
+
+# Time array setup (0 to 1600 seconds to cover t_f)
+t = np.linspace(0, 1600, 500)
+
+def calculate_cooling(h, time_array):
+    """Calculates T(t), Q_dot(t), and Delta_T(t) for a given h."""
+    b = (h * A_s) / (m * cp)
+    T_t = T_inf + (T_i - T_inf) * np.exp(-b * time_array)
+    Q_dot = h * A_s * (T_t - T_inf)
+    Delta_T = (h * r_out / k) * (T_t - T_inf)
+    return T_t, Q_dot, Delta_T
+
+# Data for h = 58
+T_58, Q_58, DeltaT_58 = calculate_cooling(58, t)
+
+# --- PLOT 1: T(t) and Q(t) for h=58 ---
+fig, ax1 = plt.subplots(figsize=(10, 5))
+
+color = 'tab:red'
+ax1.set_xlabel('Time (s)')
+ax1.set_ylabel('Temperature (°C)', color=color)
+ax1.plot(t, T_58, color=color, label='Temperature')
+ax1.tick_params(axis='y', labelcolor=color)
+ax1.axhline(90, color='gray', linestyle='--', alpha=0.7)
+
+ax2 = ax1.twinx()  
+color = 'tab:blue'
+ax2.set_ylabel('Heat Transfer Rate, Q (W)', color=color)
+ax2.plot(t, Q_58, color=color, label='Heat Transfer Rate')
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.suptitle('Cooling Temperature and Heat Transfer Rate (h = 58 W/m²K)')
+fig.tight_layout()
+plt.grid(True, alpha=0.3)
+plt.show()
+
+# --- PLOT 2: Delta T for h = 58, 100, 500 ---
+_, _, DeltaT_100 = calculate_cooling(100, t)
+_, _, DeltaT_500 = calculate_cooling(500, t)
+
+plt.figure(figsize=(10, 5))
+plt.plot(t, DeltaT_58, label='h = 58 W/m²K')
+plt.plot(t, DeltaT_100, label='h = 100 W/m²K')
+plt.plot(t, DeltaT_500, label='h = 500 W/m²K')
+plt.title('Temperature Difference (\u0394T) within Sphere vs Time')
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature Difference (\u0394T) in °C')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
